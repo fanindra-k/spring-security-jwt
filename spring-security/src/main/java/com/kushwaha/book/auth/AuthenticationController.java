@@ -1,5 +1,6 @@
 package com.kushwaha.book.auth;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -8,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name="Authentication")
 public class AuthenticationController {
@@ -17,6 +20,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
+    @Operation(summary = "Register a new user")
     public ResponseEntity<?> register(
             @RequestBody @Valid RegistrationRequest request
     ) throws MessagingException {
@@ -24,18 +28,30 @@ public class AuthenticationController {
         return ResponseEntity.accepted().build();
     }
 
+    @PostMapping("/register-instructor")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @Operation(summary = "Register a new user")
+    public ResponseEntity<?> registerInstructor(
+            @RequestBody @Valid RegistrationRequest request
+    ) throws MessagingException {
+        authenticationService.registerInstructor(request);
+        return ResponseEntity.accepted().build();
+    }
+
     @PostMapping("/authenticate")
+    @Operation(summary = "Authenticate user and return JWT token")
     public ResponseEntity<AuthenticateResponse> authenticate(
             @RequestBody @Valid AuthenticateRequest request
     ){
-        System.out.println(request.getEmail());
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
 
     @GetMapping("/activate-account")
-    public void comfirm(
+    @Operation(summary = "Activate user account using token")
+    public void confirm(
             @RequestParam String token
     ) throws MessagingException {
         authenticationService.activateAccount(token);
     }
+
 }

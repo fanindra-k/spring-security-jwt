@@ -29,7 +29,7 @@ public class Role {
     private List<User> users;
 
     @CreatedDate
-    @Column(updatable = false, insertable = false)
+    @Column(updatable = false)
     private LocalDateTime createdDate;
     @LastModifiedDate
     @Column(insertable = false)

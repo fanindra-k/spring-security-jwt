@@ -21,8 +21,11 @@ public class BookNetworkApiApplication {
 	@Bean
 	public CommandLineRunner runner(RoleRepository roleRepository) {
 		return args -> {
-			if(roleRepository.findByName("USER").isEmpty()) {
-				roleRepository.save(Role.builder().name("USER").build());
+			String[] roles = {"ADMIN", "USER", "INSTRUCTOR"};
+			for(String role : roles) {
+				if(roleRepository.findByName(role).isEmpty()) {
+					roleRepository.save(Role.builder().name(role).build());
+				}
 			}
 		};
 	}

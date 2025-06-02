@@ -2,6 +2,7 @@ package com.kushwaha.book.auth;
 
 import com.kushwaha.book.email.EmailService;
 import com.kushwaha.book.email.EmailTemplateName;
+import com.kushwaha.book.role.Role;
 import com.kushwaha.book.role.RoleRepository;
 import com.kushwaha.book.security.JwtService;
 import com.kushwaha.book.user.Token;
@@ -23,6 +24,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +52,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .accountLocked(false)
                 .enabled(false)
-                .roles(List.of(userRole))
+                .roles(Set.of(userRole))
                 .build();
         userRepository.save(user);
         sendValidationEmail(user);
@@ -71,15 +74,15 @@ public class AuthenticationService {
 
     private String generateAndSaveActivationToken(User user) {
         // generate token
-        String genratedToken = generateActivationCode(6);
+        String generate = generateActivationCode(6);
         var token = Token.builder()
-                .token(genratedToken)
+                .token(generate)
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .user(user)
                 .build();
         tokenRepository.save(token);
-        return genratedToken;
+        return generate;
     }
 
     private String generateActivationCode(int length) {
@@ -106,7 +109,10 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(claims, user);
         return AuthenticateResponse
                 .builder()
+                .username(user.getEmail())
+                .rolename(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
                 .token(jwtToken)
+
                 .build();
     }
 
@@ -123,5 +129,21 @@ public class AuthenticationService {
         userRepository.save(user);
         savedToken.setValidatedAt(LocalDateTime.now());
         tokenRepository.save(savedToken);
+    }
+
+    public void registerInstructor(@Valid RegistrationRequest request) throws MessagingException {
+        var userRole = roleRepository.findByName("INSTRUCTOR")
+                .orElseThrow(() -> new RuntimeException("USER ROLE not found"));
+        var user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .accountLocked(false)
+                .enabled(false)
+                .roles(Set.of(userRole))
+                .build();
+        userRepository.save(user);
+        sendValidationEmail(user);
     }
 }

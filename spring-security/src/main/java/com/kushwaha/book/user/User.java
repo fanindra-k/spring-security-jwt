@@ -14,7 +14,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -40,13 +40,18 @@ public class User implements UserDetails, Principal {
     private boolean enabled;
 
     @CreatedDate
-    @Column(updatable = false, insertable = false)
+    @Column(updatable = false)
     private LocalDateTime createdDate;
     @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime lastModifiedDate;
     @ManyToMany(fetch = FetchType.EAGER)
-    private List<Role> roles;
+    @JoinTable(
+            name="user_roles",
+            joinColumns = @JoinColumn(name="user_id"),
+            inverseJoinColumns = @JoinColumn(name="role_id")
+    )
+    private Set<Role> roles;
 
     @Override
     public String getName() {
@@ -57,7 +62,7 @@ public class User implements UserDetails, Principal {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles
                 .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .map(role -> new SimpleGrantedAuthority("ROLE_"+role.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -73,13 +78,16 @@ public class User implements UserDetails, Principal {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !accountLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
+
+    @Override
+    public boolean isEnabled() {return enabled;}
 
     public String fullName(){
         return firstName + " " + lastName;

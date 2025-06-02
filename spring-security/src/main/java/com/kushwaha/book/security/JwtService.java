@@ -34,12 +34,18 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
+//        return Jwts
+//                .parser()
+////                .setSigningKey(getSignInKey())
+//                .verifyWith(getSignInKey())
+//                .build()
+//                .parseEncryptedClaims(token)
+//                .getPayload();
         return Jwts
                 .parser()
-//                .setSigningKey(getSignInKey())
                 .verifyWith(getSignInKey())
                 .build()
-                .parseEncryptedClaims(token)
+                .parseSignedClaims(token)
                 .getPayload();
     }
 
@@ -57,11 +63,12 @@ public class JwtService {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
+
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .claims(claims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .claim("authorities", authorities)
                 .signWith(getSignInKey())
                 .compact();
