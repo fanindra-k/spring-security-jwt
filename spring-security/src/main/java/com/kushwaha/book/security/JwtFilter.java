@@ -34,22 +34,17 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        var servletPath = request.getServletPath();
-        System.out.println("JWT Filter - Processing path: " + servletPath);
         if(
-                (request.getServletPath().contains("/api/v1/auth") ||
-                request.getServletPath().contains("swagger"))
+                request.getServletPath().contains("/api/v1/auth") ||
+                request.getServletPath().contains("swagger")
         ) {
-            System.out.println("JWT Filter - Skipping JWT validation for: " + servletPath);
             filterChain.doFilter(request, response);
             return;
         }
-        System.out.println("JWT Filter - Validating JWT for: " + servletPath);
         final String authHeader = request.getHeader(AUTHORIZATION);
         final String jwt;
         final String userEmail;
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("JWT Filter - No valid Authorization header");
             filterChain.doFilter(request, response);
             return;
         }
