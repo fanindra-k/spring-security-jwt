@@ -1,5 +1,6 @@
 package com.kushwaha.book.handler;
 
+import com.kushwaha.book.exceptions.UserAlreadyExistException;
 import jakarta.mail.MessagingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -96,5 +97,20 @@ public class GlobalExceptionHandler {
                                 .build()
                 );
     }
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<ExceptionResponse> handleException(UserAlreadyExistException exp){
+        exp.printStackTrace();
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                        ExceptionResponse
+                                .builder()
+                                .businessErrorDescription("User already exist")
+                                .error(exp.getMessage())
+                                .build()
+
+                );
+    }
+
 
 }

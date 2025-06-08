@@ -11,12 +11,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Token {
-
+public class ActivationCode {
     @Id
     @GeneratedValue
     private Integer id;
-    private String token;
+    private String code;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
     private LocalDateTime validatedAt;

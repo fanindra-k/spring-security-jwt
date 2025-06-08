@@ -1,8 +1,10 @@
 package com.kushwaha.book.auth;
 
+import com.kushwaha.book.handler.ExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -53,5 +55,6 @@ public class AuthenticationController {
     ) throws MessagingException {
         authenticationService.activateAccount(token);
     }
+
 
 }

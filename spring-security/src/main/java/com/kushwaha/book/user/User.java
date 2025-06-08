@@ -1,6 +1,7 @@
 package com.kushwaha.book.user;
 
 import com.kushwaha.book.role.Role;
+import com.kushwaha.book.token.Token;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -14,6 +15,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,6 +54,8 @@ public class User implements UserDetails, Principal {
             inverseJoinColumns = @JoinColumn(name="role_id")
     )
     private Set<Role> roles;
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens;
 
     @Override
     public String getName() {

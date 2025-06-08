@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -26,7 +27,7 @@ public class Role {
     private String name;
     @ManyToMany(mappedBy = "roles")
     @JsonIgnore
-    private List<User> users;
+    private Set<User> users;
 
     @CreatedDate
     @Column(updatable = false)

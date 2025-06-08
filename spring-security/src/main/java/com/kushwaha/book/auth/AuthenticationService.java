@@ -2,15 +2,15 @@ package com.kushwaha.book.auth;
 
 import com.kushwaha.book.email.EmailService;
 import com.kushwaha.book.email.EmailTemplateName;
+import com.kushwaha.book.exceptions.UserAlreadyExistException;
 import com.kushwaha.book.role.Role;
 import com.kushwaha.book.role.RoleRepository;
 import com.kushwaha.book.security.JwtService;
-import com.kushwaha.book.user.Token;
-import com.kushwaha.book.user.TokenRepository;
-import com.kushwaha.book.user.User;
-import com.kushwaha.book.user.UserRepository;
+import com.kushwaha.book.token.Token;
+import com.kushwaha.book.token.TokenRepository;
+import com.kushwaha.book.token.TokenService;
+import com.kushwaha.book.user.*;
 import jakarta.mail.MessagingException;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,7 +33,8 @@ public class AuthenticationService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
+    private final TokenService tokenService;
+    private final ActivationCodeRepository activationCodeRepository;
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -42,13 +42,23 @@ public class AuthenticationService {
     @Value("${application.mailing.frontend.activation-url}")
     private String activationURL;
 
-    public void register(RegistrationRequest request) throws MessagingException {
-        var userRole = roleRepository.findByName("USER")
+    public void registerInstructor(@Valid RegistrationRequest request) throws MessagingException {
+        register(request, "INSTRUCTOR");
+    }
+    public void register(RegistrationRequest request) throws MessagingException{
+        register(request, "USER");
+    }
+
+    public void register(RegistrationRequest request, String roleName) throws MessagingException {
+        if(userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistException("User with this email is already exist");
+        }
+        var userRole = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new RuntimeException("USER ROLE not found"));
         var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
+                .firstName(request.getFirstName().trim())
+                .lastName(request.getLastName().trim())
+                .email(request.getEmail().trim())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .accountLocked(false)
                 .enabled(false)
@@ -59,29 +69,28 @@ public class AuthenticationService {
     }
 
     private void sendValidationEmail(User user) throws MessagingException {
-        var newToken = generateAndSaveActivationToken(user);
+        var activationCode = generateAndSaveActivationCode(user);
 
         emailService.sendEmail(
                 user.getEmail(),
                 user.fullName(),
                 EmailTemplateName.ACTIVATE_ACCOUNT,
                 activationURL,
-                newToken,
+                activationCode,
                 "Account Activation"
         );
-
     }
 
-    private String generateAndSaveActivationToken(User user) {
-        // generate token
+    private String generateAndSaveActivationCode(User user) {
+        // generate activation code
         String generate = generateActivationCode(6);
-        var token = Token.builder()
-                .token(generate)
+        var activationCode = ActivationCode.builder()
+                .code(generate)
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .user(user)
                 .build();
-        tokenRepository.save(token);
+        activationCodeRepository.save(activationCode);
         return generate;
     }
 
@@ -107,6 +116,7 @@ public class AuthenticationService {
         var user = ((User)auth.getPrincipal());
         claims.put("fullName", user.fullName());
         var jwtToken = jwtService.generateToken(claims, user);
+        tokenService.saveToken(jwtToken,user);
         return AuthenticateResponse
                 .builder()
                 .username(user.getEmail())
@@ -115,35 +125,19 @@ public class AuthenticationService {
 
                 .build();
     }
-
 //    @Transactional
-    public void activateAccount(String token) throws MessagingException {
-        Token savedToken = tokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("Invalid token"));
-        if(LocalDateTime.now().isAfter(savedToken.getExpiresAt())){
-            sendValidationEmail(savedToken.getUser());
+    public void activateAccount(String code) throws MessagingException {
+        var savedActivationCode = activationCodeRepository.findByCode(code).orElseThrow(() -> new RuntimeException("Invalid token"));
+        if(LocalDateTime.now().isAfter(savedActivationCode.getExpiresAt())){
+            sendValidationEmail(savedActivationCode.getUser());
             throw new RuntimeException("Activation token expired. A new Activation token has been sent");
         }
-        var user = userRepository.findById(savedToken.getUser().getId())
+        var user = userRepository.findById(savedActivationCode.getUser().getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found"));
         user.setEnabled(true);
         userRepository.save(user);
-        savedToken.setValidatedAt(LocalDateTime.now());
-        tokenRepository.save(savedToken);
+        savedActivationCode.setValidatedAt(LocalDateTime.now());
+        activationCodeRepository.save(savedActivationCode);
     }
 
-    public void registerInstructor(@Valid RegistrationRequest request) throws MessagingException {
-        var userRole = roleRepository.findByName("INSTRUCTOR")
-                .orElseThrow(() -> new RuntimeException("USER ROLE not found"));
-        var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .accountLocked(false)
-                .enabled(false)
-                .roles(Set.of(userRole))
-                .build();
-        userRepository.save(user);
-        sendValidationEmail(user);
-    }
 }

@@ -13,6 +13,8 @@ public enum BusinessErrorCodes {
     ACCOUNT_LOCKED(302, FORBIDDEN, "User account is locked. Please verify your account"),
     ACCOUNT_DISABLED(303, FORBIDDEN, "User account is disabled"),
     BAD_CREDENTIALS(304, FORBIDDEN, "Login and / or Password is incorrect"),
+    ROLE_INVALID(403, FORBIDDEN, "Role is invalid"),
+    ALREADY_EXISTS(409, CONFLICT, "User already exists"),
         ;
 
 
