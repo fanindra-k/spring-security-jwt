@@ -1,0 +1,24 @@
+# IDE & build
+.idea/
+*.iml
+*.class
+*.log
+target/
+build/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment files
+*.env
+.env*
+
+# Spring Boot sensitive config
+src/main/resources/application-*.yml
+!src/main/resources/application-prod.yml
+
+# If you use Docker
+*.jar
+*.war
+docker-compose.override.yml

@@ -126,8 +126,9 @@ public class AuthenticationService {
                 .build();
     }
 //    @Transactional
-    public void activateAccount(String code) throws MessagingException {
+    public AuthenticateResponse activateAccount(String code) throws MessagingException {
         var savedActivationCode = activationCodeRepository.findByCode(code).orElseThrow(() -> new RuntimeException("Invalid token"));
+
         if(LocalDateTime.now().isAfter(savedActivationCode.getExpiresAt())){
             sendValidationEmail(savedActivationCode.getUser());
             throw new RuntimeException("Activation token expired. A new Activation token has been sent");
@@ -136,8 +137,19 @@ public class AuthenticationService {
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found"));
         user.setEnabled(true);
         userRepository.save(user);
+        var claims = new HashMap<String, Object>();
+        claims.put("fullName", user.fullName());
+        var jwtToken = jwtService.generateToken(claims, user);
+        tokenService.saveToken(jwtToken,user);
         savedActivationCode.setValidatedAt(LocalDateTime.now());
         activationCodeRepository.save(savedActivationCode);
+        return AuthenticateResponse
+                .builder()
+                .username(user.getEmail())
+                .rolename(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
+                .token(jwtToken)
+
+                .build();
     }
 
 }

@@ -17,6 +17,7 @@ import java.util.Map;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name="Authentication")
+@CrossOrigin(origins="http://127.0.0.1:5500")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
@@ -50,11 +51,9 @@ public class AuthenticationController {
 
     @GetMapping("/activate-account")
     @Operation(summary = "Activate user account using token")
-    public void confirm(
+    public AuthenticateResponse confirm(
             @RequestParam String token
     ) throws MessagingException {
-        authenticationService.activateAccount(token);
+        return authenticationService.activateAccount(token);
     }
-
-
 }

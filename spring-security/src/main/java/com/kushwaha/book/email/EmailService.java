@@ -3,6 +3,7 @@ package com.kushwaha.book.email;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -21,6 +22,7 @@ import static org.springframework.mail.javamail.MimeMessageHelper.MULTIPART_MODE
 public class EmailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
+    private final Environment env;
 
 
     @Async
@@ -47,9 +49,9 @@ public class EmailService {
         properties.put("activation_code", activationCode);
         Context context = new Context();
         context.setVariables(properties);
-
+        String mailFrom = env.getProperty("eduflow.mail");
         helper.setTo(to);
-        helper.setFrom("fanindrakumar2298@gmail.com");
+        helper.setFrom(mailFrom);
         helper.setSubject(subject);
 
         String template = templateEngine.process(templateName, context);

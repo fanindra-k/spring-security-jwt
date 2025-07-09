@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class TokenService {
     private final TokenRepository tokenRepository;
 
-    @Transactional
+//    @Transactional
     public void revokeToken(String jwtToken, Authentication authentication) {
 //       tokenRepository.findByToken(jwtToken)
 //               .ifPresentOrElse(token -> {
