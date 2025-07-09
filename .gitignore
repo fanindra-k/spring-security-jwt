@@ -36,9 +36,4 @@ spring-security/src/resources/*.yml
 # === Ignore test reports ===
 /test-output/
 
-# === Ignore UML or image assets if not needed ===
-*.png
-*.jpg
-*.jpeg
-*.svg
-*.gif
+
