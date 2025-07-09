@@ -15,8 +15,8 @@ Thumbs.db
 .env*
 
 # Spring Boot sensitive config
-src/main/resources/application-*.yml
-!src/main/resources/application-prod.yml
+spring-security/src/main/resources/application-*.yml
+#!src/main/resources/application-prod.yml
 
 # If you use Docker
 *.jar
