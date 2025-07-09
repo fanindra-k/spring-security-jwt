@@ -1,24 +1,44 @@
-# IDE & build
+# === Ignore build output ===
+/target/
+**/target/
+
+# === Ignore IDE settings ===
 .idea/
 *.iml
-*.class
-*.log
-target/
-build/
 
-# OS-specific
+# === Ignore OS-specific files ===
 .DS_Store
 Thumbs.db
 
-# Environment files
-*.env
-.env*
+# === Ignore Maven wrapper logs ===
+.mvn/wrapper/maven-wrapper.jar
 
-# Spring Boot sensitive config
-spring-security/src/main/resources/application-*.yml
-#!src/main/resources/application-prod.yml
+# === Ignore YAML files (like secrets/configs) ===
+*.yml
+*.yaml
+spring-security/src/resources/*.yml
 
-# If you use Docker
-*.jar
-*.war
-docker-compose.override.yml
+# === Keep these specific YAML files if needed ===
+!docker-compose.yml
+
+# === Ignore logs ===
+*.log
+
+# === Ignore temp and backup files ===
+*.tmp
+*.bak
+*.swp
+*~
+
+# === Ignore generated files ===
+/build/
+
+# === Ignore test reports ===
+/test-output/
+
+# === Ignore UML or image assets if not needed ===
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.gif
